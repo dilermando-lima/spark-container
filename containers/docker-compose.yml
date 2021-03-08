@@ -1,0 +1,46 @@
+version: "3.9"
+
+services:
+  sparkmaster:
+    container_name: sparkmaster_container
+    build:
+      dockerfile: ./base-spark.Dockerfile
+      context: .
+    image: base-spark-local:v1
+    hostname: sparkmaster #used to register workers into master node
+    environment:
+        SPARK_MASTER_PORT: 7077
+        SPARK_MASTER_WEBUI_PORT: 8080
+        SPARK_SUBMIT_API: 6066
+        SPARK_JOB_UI_PORT: 4040
+    volumes:
+      - ./apps:/usr/spark/apps
+    ports:
+      - 6066:6066 # api integrations
+      - 8080:8080 # console spark ui
+      - 7077:7077 # connect to master
+      - 4040:4040  # aplications ui /jobs and api to aplications /api/v1/applications
+
+
+  sparkworker:
+    build:
+      dockerfile: ./base-spark.Dockerfile
+      context: .
+    image: base-spark-local:v1
+    environment: 
+      WORKER_CORES_DEFAULT: 2
+      WORKER_MEMORY_DEFAULT: 1G
+      HOST_NAME_MASTER: sparkmaster
+    links:
+      - sparkmaster
+
+# down containers:      docker-compose down --remove-orphans
+# lift services up:     docker-compose up --build -d --force-recreate
+# list on scaling:      docker-compose up --scale sparkworker=2
+# go into master_spark: docker exec -it sparkmaster_container /bin/bash
+# send jar into docker: docker cp target/file.jar  $(docker ps -qf "name=sparkmaster_container"):/usr/spark/apps/file.jar
+# running in master ${SPARK_HOME}/bin/spark-submit --class com.example.sparktest.App --master spark://sparkmaster:7077  ${SPARK_HOME}/apps/testApp1.jar
+# remove all containers docker rm $( docker ps -aq )
+
+
+
