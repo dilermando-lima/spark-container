@@ -1,13 +1,13 @@
 version: "3.9"
 
 services:
-  sparkmaster:
-    container_name: sparkmaster_container
+  sparkcmd:
+    container_name: spark_cmd_container
     build:
-      dockerfile: ./base-spark.Dockerfile
+      dockerfile: ./base-spark-cmd.Dockerfile
       context: .
-    image: base-spark-local:v1
-    hostname: sparkmaster #used to register workers into master node
+    image: base-spark-cmd:v1
+    hostname: sparkcmd #used to register workers into master node
     environment:
         SPARK_MASTER_PORT: 7077
         SPARK_MASTER_WEBUI_PORT: 8080
@@ -22,17 +22,8 @@ services:
       - 4040:4040  # aplications ui /jobs and api to aplications /api/v1/applications
 
 
-  sparkworker:
-    build:
-      dockerfile: ./base-spark.Dockerfile
-      context: .
-    image: base-spark-local:v1
-    environment: 
-      WORKER_CORES_DEFAULT: 2
-      WORKER_MEMORY_DEFAULT: 1G
-      HOST_NAME_MASTER: sparkmaster
-    links:
-      - sparkmaster
+# add more one worker
+# docker exec -it spark_cmd_container /bin/bash ./usr/spark/sbin/start-worker.sh spark://sparkcmd:7077 --cores 2 --memory 512M
 
 
 
